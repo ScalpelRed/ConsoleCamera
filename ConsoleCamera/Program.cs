@@ -7,6 +7,7 @@ class Program
         "  ", " ░", "░░", "░▒", "▒▒", "▒▓", "▓▓", "▓█", "██"
     };
 
+    const int DEFAULT_CAMERA_INDEX = 0;
     const float DEFAULT_QUALITY_X = 0.25f;
     const float DEFAULT_QUALITY_Y = 0.25f;
     const float DEFAULT_FPS = 20f;
@@ -18,12 +19,34 @@ class Program
 
     static void Main()
     {
+        {
+            Console.Write($"Camera index (anything else for {DEFAULT_CAMERA_INDEX}) ");
+            string input = Console.ReadLine()!;
+            int value = DEFAULT_CAMERA_INDEX;
+            if (string.IsNullOrEmpty(input))
+            {
+                Console.WriteLine($"Value was set to {DEFAULT_CAMERA_INDEX}");
+            }
+            else if (int.TryParse(input, out int v))
+            {
+                value = v;
+            }
+            else
+            {
+                Console.WriteLine($"Invalid format or value, was set to {DEFAULT_QUALITY_X}");
+            }
         Console.WriteLine("Initializing the camera, please wait...");
-
-        Capture = new VideoCapture(0);
-
+            Capture = new VideoCapture(value);
+            if (!Capture.IsOpened)
+            {
+                Console.WriteLine("Camera does not exist. Press any key to exit...");
+                Console.ReadLine();
+                return;
+            }
+        }
         Console.WriteLine("Camera resolution is " + Capture.Width + "x" + Capture.Height);
 
+        {
         Console.Write($"Quality X (in (0.0, 1.0], anything else for {DEFAULT_QUALITY_X}) ");
         string input = Console.ReadLine()!.Replace('.', ',');
         float value = DEFAULT_QUALITY_X;
@@ -40,10 +63,12 @@ class Program
             Console.WriteLine($"Invalid format or value, was set to {DEFAULT_QUALITY_X}");
         }
         StepX = (int)(1f / value);
+        }
 
+        {
         Console.Write($"Quality Y ((in (0.0, 1.0], anything else for {DEFAULT_QUALITY_Y}) ");
-        input = Console.ReadLine()!.Replace('.', ',');
-        value = DEFAULT_QUALITY_Y;
+            string input = Console.ReadLine()!.Replace('.', ',');
+            float value = DEFAULT_QUALITY_Y;
         if (string.IsNullOrEmpty(input))
         {
             Console.WriteLine($"Value was set to {DEFAULT_QUALITY_Y}");
@@ -57,10 +82,12 @@ class Program
             Console.WriteLine($"Invalid format or value, was set to {DEFAULT_QUALITY_Y}");
         }
         StepY = (int)(1f / value);
+        }
 
+        {
         Console.Write($"Target fps (more than 0, anything else for {DEFAULT_FPS}) ");
-        input = Console.ReadLine()!.Replace('.', ',');
-        value = DEFAULT_FPS;
+            string input = Console.ReadLine()!.Replace('.', ',');
+            float value = DEFAULT_FPS;
         if (string.IsNullOrEmpty(input))
         {
             Console.WriteLine($"Value was set to {DEFAULT_FPS}");
@@ -74,6 +101,7 @@ class Program
             Console.WriteLine($"Invalid format or value, was set to {DEFAULT_FPS}");
         }
         TimeDelta = (int)(1000f / value);
+        }
 
         while (true)
         {
