@@ -1,4 +1,5 @@
 ﻿using Emgu.CV;
+using System.Text;
 
 class Program
 { 
@@ -83,6 +84,9 @@ class Program
         }
         StepY = (int)(1f / value);
         }
+        Console.SetBufferSize(Capture.Width / StepX, Capture.Height / StepY);
+        if (Console.BufferWidth < Console.LargestWindowWidth && Console.BufferHeight < Console.LargestWindowHeight) 
+            Console.SetWindowSize(Console.BufferWidth, Console.BufferHeight);
 
         {
         Console.Write($"Target fps (more than 0, anything else for {DEFAULT_FPS}) ");
@@ -103,39 +107,30 @@ class Program
         TimeDelta = (int)(1000f / value);
         }
 
+        StringBuilder textBuffer = new();
         while (true)
         {
-            ProcessFrame();
-            Thread.Sleep(TimeDelta);
-        }
-    }
-
-    static void ProcessFrame()
-    {
-
         Mat frame = Capture.QueryFrame();
         byte[] dat = new byte[frame.Cols * frame.Rows * 3];
         if (frame is not null)
         {
             frame.CopyTo(dat);
-            Console.SetCursorPosition(0, 0);
-            Console.WriteLine(FrameToString(StepX, StepY));
-        }
-
-        string FrameToString(int wx, int wy)
+                textBuffer.Clear();
+                for (int y = 0; y < frame.Rows; y += StepY)
         {
-            string res = "";
-            for (int i = 0; i < frame.Rows; i += wy)
+                    for (int x = 0; x < frame.Cols; x += StepX)
             {
-                for (int p = frame.Cols - 1; p > 0; p -= wx)
-                {
-                    int pos = (p + i * frame.Cols) * 3;
-                    res += Colors[(int)(dat[pos + 2] / 255f * 8)];
-
+                        int pos = (x + y * frame.Cols) * 3;
+                        int ind = (int)MathF.Floor((dat[pos] + dat[pos + 1] + dat[pos + 2]) / 256f * 3);
+                        textBuffer.Append(Colors[ind]);
+                    }
+                    textBuffer.AppendLine();
                 }
-                res += "\n";
+
+                Console.SetCursorPosition(0, 0);
+                Console.WriteLine(textBuffer.ToString());
             }
-            return res;
+            Thread.Sleep(TimeDelta);
         }
     }
 }
