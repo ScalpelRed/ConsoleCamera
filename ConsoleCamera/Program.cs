@@ -7,7 +7,11 @@ class Program
         "  ", " ░", "░░", "░▒", "▒▒", "▒▓", "▓▓", "▓█", "██"
     };
 
-    static VideoCapture Capture;
+    const float DEFAULT_QUALITY_X = 0.25f;
+    const float DEFAULT_QUALITY_Y = 0.25f;
+    const float DEFAULT_FPS = 20f;
+
+    static VideoCapture Capture = null!;
     static int StepX;
     static int StepY;
     static int TimeDelta;
@@ -20,42 +24,56 @@ class Program
 
         Console.WriteLine("Camera resolution is " + Capture.Width + "x" + Capture.Height);
 
-        Console.Write("Quality X (from 0 to 1, empty for 0.25) ");
-        try
+        Console.Write($"Quality X (in (0.0, 1.0], anything else for {DEFAULT_QUALITY_X}) ");
+        string input = Console.ReadLine()!.Replace('.', ',');
+        float value = DEFAULT_QUALITY_X;
+        if (string.IsNullOrEmpty(input))
         {
-            float d = float.Parse(Console.ReadLine()!.Replace('.', ','));
-            if (d <= 0 || d > 1) StepX = 4;
-            else StepX = (int)(1f / d);
-        }
-        catch (FormatException)
+            Console.WriteLine($"Value was set to {DEFAULT_QUALITY_X}");
+        } 
+        else if (float.TryParse(input, out float v) && v > 0 && v <= 1)
         {
-            Console.WriteLine("Invalid format, value was set to 0.25");
-            StepX = 4;
+            value = v;
         }
-        Console.Write("Quality Y (from 0 to 1, empty for 0.25) ");
-        try
+        else
         {
-            float d = float.Parse(Console.ReadLine()!.Replace('.', ','));
-            if (d <= 0 || d > 1) StepY = 4;
-            else StepY = (int)(1f / d);
+            Console.WriteLine($"Invalid format or value, was set to {DEFAULT_QUALITY_X}");
         }
-        catch (FormatException)
+        StepX = (int)(1f / value);
+
+        Console.Write($"Quality Y ((in (0.0, 1.0], anything else for {DEFAULT_QUALITY_Y}) ");
+        input = Console.ReadLine()!.Replace('.', ',');
+        value = DEFAULT_QUALITY_Y;
+        if (string.IsNullOrEmpty(input))
         {
-            Console.WriteLine("Invalid format, value was set to 0.25");
-            StepY = 4;
+            Console.WriteLine($"Value was set to {DEFAULT_QUALITY_Y}");
         }
-        Console.Write("Target fps (values bigger than 20 are not recommended) ");
-        try
+        else if (float.TryParse(input, out float v) && v > 0 && v <= 1)
         {
-            float d = float.Parse(Console.ReadLine()!);
-            if (d <= 0) TimeDelta = 500;
-            else TimeDelta = (int)(1000 / d);
+            value = v;
         }
-        catch (FormatException)
+        else
         {
-            Console.WriteLine("Invalid format, value was set to 2");
-            TimeDelta = 500;
+            Console.WriteLine($"Invalid format or value, was set to {DEFAULT_QUALITY_Y}");
         }
+        StepY = (int)(1f / value);
+
+        Console.Write($"Target fps (more than 0, anything else for {DEFAULT_FPS}) ");
+        input = Console.ReadLine()!.Replace('.', ',');
+        value = DEFAULT_FPS;
+        if (string.IsNullOrEmpty(input))
+        {
+            Console.WriteLine($"Value was set to {DEFAULT_FPS}");
+        }
+        else if (float.TryParse(input, out float v) && v > 0)
+        {
+            value = v;
+        }
+        else
+        {
+            Console.WriteLine($"Invalid format or value, was set to {DEFAULT_FPS}");
+        }
+        TimeDelta = (int)(1000f / value);
 
         while (true)
         {
