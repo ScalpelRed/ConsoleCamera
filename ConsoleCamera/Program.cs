@@ -110,7 +110,6 @@ class Program
         }
     }
 
-    static int clearCounter = 0;
     static void ProcessFrame()
     {
 
@@ -119,12 +118,7 @@ class Program
         if (frame is not null)
         {
             frame.CopyTo(dat);
-            clearCounter++;
-            if (clearCounter == 30)
-            {
-                Console.Clear();
-                clearCounter = 0;
-            }
+            Console.SetCursorPosition(0, 0);
             Console.WriteLine(FrameToString(StepX, StepY));
         }
 
