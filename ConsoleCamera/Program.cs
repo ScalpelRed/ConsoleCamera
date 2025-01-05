@@ -107,7 +107,7 @@ class Program
         TimeDelta = (int)(1000f / value);
         }
 
-        StringBuilder textBuffer = new();
+        PrintThread.Start();
         while (true)
         {
         Mat frame = Capture.QueryFrame();
@@ -115,22 +115,46 @@ class Program
         if (frame is not null)
         {
             frame.CopyTo(dat);
-                textBuffer.Clear();
+                PrintBuffer.Clear();
                 for (int y = 0; y < frame.Rows; y += StepY)
         {
                     for (int x = 0; x < frame.Cols; x += StepX)
             {
                         int pos = (x + y * frame.Cols) * 3;
                         int ind = (int)MathF.Floor((dat[pos] + dat[pos + 1] + dat[pos + 2]) / 256f * 3);
-                        textBuffer.Append(Colors[ind]);
+                        PrintBuffer.Append(Colors[ind]);
                     }
-                    textBuffer.AppendLine();
+                    PrintBuffer.AppendLine();
+                }
+            }
+            lock (PrintThreadLock)
+            {
+                PrintThreadWait = false;
+                Monitor.Pulse(PrintThreadLock);
+            }
+            Thread.Sleep(TimeDelta);
+        }
+    }
+
+    static readonly StringBuilder PrintBuffer = new();
+    static readonly object PrintThreadLock = new();
+    static bool PrintThreadWait = true;
+    static readonly Thread PrintThread = new(PrintThreadFunc);
+    static void PrintThreadFunc()
+    {
+        while (true)
+        {
+            while (PrintThreadWait)
+            {
+                lock (PrintThreadLock)
+                {
+                    Monitor.Wait(PrintThreadLock);
+                    }
                 }
 
                 Console.SetCursorPosition(0, 0);
-                Console.WriteLine(textBuffer.ToString());
-            }
-            Thread.Sleep(TimeDelta);
+            Console.WriteLine(PrintBuffer.ToString());
+            PrintThreadWait = true;
         }
     }
 }
