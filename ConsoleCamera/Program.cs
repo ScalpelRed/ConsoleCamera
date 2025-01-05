@@ -95,21 +95,21 @@ class Program
                 frame.CopyTo(dat);
                 lock (PrintBuffer)
                 {
-                PrintBuffer.Clear();
+                    PrintBuffer.Clear();
                     int posy = 0;
                     for (int y = 0; y < Capture.Height; y += StepY)
-                {
+                    {
                         int pos = posy;
                         for (int x = 0; x < Capture.Width; x += StepX)
-                    {
+                        {
                             int ind = (int)MathF.Floor((dat[pos] + dat[pos + 1] + dat[pos + 2]) / 768f * 9);
-                        PrintBuffer.Append(Colors[ind]);
+                            PrintBuffer.Append(Colors[ind]);
                             pos += posDelta;
-                    }
-                    PrintBuffer.AppendLine();
+                        }
+                        PrintBuffer.AppendLine();
                         posy += posyDelta;
+                    }
                 }
-            }
             }
             lock (PrintThreadLock)
             {
