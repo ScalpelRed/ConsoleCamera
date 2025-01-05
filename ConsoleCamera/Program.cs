@@ -32,7 +32,7 @@ class Program
             }
             else
             {
-                Console.WriteLine($"Invalid format or value, was set to {DEFAULT_QUALITY_X}");
+                Console.WriteLine($"Invalid format or value, was set to {DEFAULT_CAMERA_INDEX}");
             }
             Console.WriteLine("Initializing the camera, please wait...");
             Capture = new VideoCapture(value);
@@ -84,25 +84,30 @@ class Program
         }
 
         PrintThread.Start();
+        byte[] dat = new byte[Capture.Width * Capture.Height * 3];
+        int posyDelta = StepY * Capture.Width * 3;
+        int posDelta = StepX * 3;
         while (true)
         {
             Mat frame = Capture.QueryFrame();
-            byte[] dat = new byte[frame.Cols * frame.Rows * 3];
             if (frame is not null)
             {
                 frame.CopyTo(dat);
                 lock (PrintBuffer)
                 {
                 PrintBuffer.Clear();
-                for (int y = 0; y < frame.Rows; y += StepY)
+                    int posy = 0;
+                    for (int y = 0; y < Capture.Height; y += StepY)
                 {
-                    for (int x = 0; x < frame.Cols; x += StepX)
+                        int pos = posy;
+                        for (int x = 0; x < Capture.Width; x += StepX)
                     {
-                        int pos = (x + y * frame.Cols) * 3;
-                        int ind = (int)MathF.Floor((dat[pos] + dat[pos + 1] + dat[pos + 2]) / 256f * 3);
+                            int ind = (int)MathF.Floor((dat[pos] + dat[pos + 1] + dat[pos + 2]) / 768f * 9);
                         PrintBuffer.Append(Colors[ind]);
+                            pos += posDelta;
                     }
                     PrintBuffer.AppendLine();
+                        posy += posyDelta;
                 }
             }
             }
