@@ -67,7 +67,7 @@ class Program
         }
 
         {
-            Console.Write($"Quality Y ((in (0.0, 1.0], anything else for {DEFAULT_QUALITY_Y}) ");
+            Console.Write($"Quality Y (in (0.0, 1.0], anything else for {DEFAULT_QUALITY_Y}) ");
             string input = Console.ReadLine()!.Replace('.', ',');
             float value = DEFAULT_QUALITY_Y;
             if (string.IsNullOrEmpty(input))
@@ -84,9 +84,6 @@ class Program
             }
             StepY = (int)(1f / value);
         }
-        Console.SetBufferSize(Capture.Width / StepX, Capture.Height / StepY);
-        if (Console.BufferWidth < Console.LargestWindowWidth && Console.BufferHeight < Console.LargestWindowHeight)
-            Console.SetWindowSize(Console.BufferWidth, Console.BufferHeight);
 
         {
             Console.Write($"Target fps (more than 0, anything else for {DEFAULT_FPS}) ");
