@@ -11,12 +11,10 @@ class Program
     const int DEFAULT_CAMERA_INDEX = 0;
     const float DEFAULT_QUALITY_X = 0.25f;
     const float DEFAULT_QUALITY_Y = 0.25f;
-    const float DEFAULT_FPS = 20f;
 
     static VideoCapture Capture = null!;
     static int StepX;
     static int StepY;
-    static int TimeDelta;
 
     static void Main()
     {
@@ -85,25 +83,6 @@ class Program
             StepY = (int)(1f / value);
         }
 
-        {
-            Console.Write($"Target fps (more than 0, anything else for {DEFAULT_FPS}) ");
-            string input = Console.ReadLine()!.Replace('.', ',');
-            float value = DEFAULT_FPS;
-            if (string.IsNullOrEmpty(input))
-            {
-                Console.WriteLine($"Value was set to {DEFAULT_FPS}");
-            }
-            else if (float.TryParse(input, out float v) && v > 0)
-            {
-                value = v;
-            }
-            else
-            {
-                Console.WriteLine($"Invalid format or value, was set to {DEFAULT_FPS}");
-            }
-            TimeDelta = (int)(1000f / value);
-        }
-
         PrintThread.Start();
         while (true)
         {
@@ -112,6 +91,8 @@ class Program
             if (frame is not null)
             {
                 frame.CopyTo(dat);
+                lock (PrintBuffer)
+                {
                 PrintBuffer.Clear();
                 for (int y = 0; y < frame.Rows; y += StepY)
                 {
@@ -124,12 +105,12 @@ class Program
                     PrintBuffer.AppendLine();
                 }
             }
+            }
             lock (PrintThreadLock)
             {
                 PrintThreadWait = false;
                 Monitor.Pulse(PrintThreadLock);
             }
-            Thread.Sleep(TimeDelta);
         }
     }
 
@@ -150,7 +131,12 @@ class Program
             }
 
             Console.SetCursorPosition(0, 0);
-            Console.WriteLine(PrintBuffer.ToString());
+            string ot;
+            lock (PrintBuffer)
+            {
+                ot = PrintBuffer.ToString();
+            }
+            Console.WriteLine(ot);
             PrintThreadWait = true;
         }
     }
