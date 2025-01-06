@@ -147,27 +147,25 @@ class Program
                     }
                 }
             }
-            lock (PrintThreadLock)
+            lock (PrintBuffer)
             {
-                PrintThreadWait = false;
-                Monitor.Pulse(PrintThreadLock);
+                WaitForBufferChange = false;
+                Monitor.Pulse(PrintBuffer);
             }
         }
     }
 
     static readonly StringBuilder PrintBuffer = new();
-    static readonly object PrintThreadLock = new();
-    static bool PrintThreadWait = true;
-    static readonly Thread PrintThread = new(PrintThreadFunc);
-    static void PrintThreadFunc()
+    static bool WaitForBufferChange = true;
+    static readonly Thread PrintThread = new(() =>
     {
         while (true)
         {
-            while (PrintThreadWait)
+            while (WaitForBufferChange)
             {
-                lock (PrintThreadLock)
+                lock (PrintBuffer)
                 {
-                    Monitor.Wait(PrintThreadLock);
+                    Monitor.Wait(PrintBuffer);
                 }
             }
 
@@ -178,8 +176,8 @@ class Program
                 ot = PrintBuffer.ToString();
             }
             Console.WriteLine(ot);
-            PrintThreadWait = true;
-        }
+            WaitForBufferChange = true;
     }
+    });
 }
 
