@@ -13,8 +13,14 @@ class Program
     const float DEFAULT_QUALITY_Y = 0.25f;
 
     static VideoCapture Capture = null!;
+
     static int StepX;
+    static bool FlipX;
+    static int SizeX;
+
     static int StepY;
+    static bool FlipY;
+    static int SizeY;
 
     static void Main()
     {
@@ -83,12 +89,42 @@ class Program
             StepY = (int)(1f / value);
         }
 
+        SizeX = Capture.Width;
+        SizeY = Capture.Height;
+
         PrintThread.Start();
-        byte[] dat = new byte[Capture.Width * Capture.Height * 3];
-        int posyDelta = StepY * Capture.Width * 3;
-        int posDelta = StepX * 3;
+        byte[] dat = new byte[SizeX * SizeY * 3];
+        int posyInit = 0;
+        int posxInit = 0;
+        int posyDelta = StepY * SizeX * 3;
+        int posxDelta = StepX * 3;
+        int sizeX3 = SizeX * 3;
         while (true)
         {
+            if (Console.CapsLock)
+            {
+                if (FlipX != Console.CapsLock)
+                {
+                    FlipX = true;
+                    posxDelta = -posxDelta;
+                    posxInit = sizeX3 - posxInit;
+                    posxInit += FlipX ? -3 : 3;
+                }
+            }
+            else FlipX = false;
+
+            if (!Console.NumberLock)
+            {
+                if (FlipY == Console.NumberLock)
+                {
+                    FlipY = true;
+                    posyDelta = -posyDelta;
+                    posyInit = dat.Length - posyInit;
+                    posyInit += FlipY ? -sizeX3 : sizeX3;
+                }
+            }
+            else FlipY = false;
+
             Mat frame = Capture.QueryFrame();
             if (frame is not null)
             {
@@ -96,15 +132,15 @@ class Program
                 lock (PrintBuffer)
                 {
                     PrintBuffer.Clear();
-                    int posy = 0;
-                    for (int y = 0; y < Capture.Height; y += StepY)
+                    int posy = posyInit;
+                    for (int y = 0; y < SizeY; y += StepY)
                     {
-                        int pos = posy;
-                        for (int x = 0; x < Capture.Width; x += StepX)
+                        int pos = posy + posxInit;
+                        for (int x = 0; x < SizeX; x += StepX)
                         {
-                            int ind = (int)MathF.Floor((dat[pos] + dat[pos + 1] + dat[pos + 2]) / 768f * 9);
+                            int ind = (int)MathF.Floor((dat[pos] + dat[pos + 1] + dat[pos + 2]) / 768f * Colors.Length);
                             PrintBuffer.Append(Colors[ind]);
-                            pos += posDelta;
+                            pos += posxDelta;
                         }
                         PrintBuffer.AppendLine();
                         posy += posyDelta;
